@@ -32,16 +32,21 @@ jobs:
       - name: Clean Cache
         run: echo "y" | buildozer distclean
 
-      # Forzamos a Buildozer a descargar su propio SDK limpio y aislado
+      # Forzamos la instalación manual y explícita de las build-tools que contienen AIDL
+      - name: Force Install Android Build Tools (Aidl)
+        run: |
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
+          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.1" "platforms;android-33"
+          # Añadimos la ruta de la carpeta que acabamos de descargar al entorno global de Linux
+          echo "${ANDROID_HOME}/build-tools/33.0.1" >> $GITHUB_PATH
+
+      # Compilamos vinculando directamente las rutas para que Buildozer no tenga alternativa de perderse
       - name: Build APK
         env:
           APP_ALLOW_ROOT: "1"
           BUILDOZER_ALLOW_KIVY_DEVELOP_BRANCH: "1"
         run: |
-          # Desactivamos temporalmente las variables del sistema de GitHub para obligar a Buildozer
-          # a descargar automáticamente la versión exacta de build-tools (y aidl) que necesita.
-          unset ANDROID_HOME
-          unset ANDROID_SDK_ROOT
+          export PATH=$PATH:${ANDROID_HOME}/build-tools/33.0.1
           buildozer -v android debug
 
       - name: Upload APK
