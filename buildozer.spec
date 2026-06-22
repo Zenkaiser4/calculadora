@@ -34,6 +34,10 @@ android.api = 33
 android.minapi = 21
 android.ndk = 26b
 android.ndk_api = 21
+
+# TRUCO DEFINITIVO: Forzamos a Buildozer a usar herramientas versión 33 en vez de la 37
+android.build_tools_version = 33.0.1
+
 android.private_storage = True
 android.copy_libs = 1
 android.archs = arm64-v8a, armeabi-v7a
