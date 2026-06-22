@@ -32,22 +32,16 @@ jobs:
       - name: Clean Cache
         run: echo "y" | buildozer distclean
 
-      # Forzar la aceptación de licencias del SDK de Android sin colapsar la consola
-      - name: Accept Android SDK Licenses
-        run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      # CORRECCIÓN AQUÍ: Exportamos PATH y ANDROID_HOME globalmente para que Buildozer localice 'aidl'
+      # Forzamos a Buildozer a descargar su propio SDK limpio y aislado
       - name: Build APK
         env:
           APP_ALLOW_ROOT: "1"
           BUILDOZER_ALLOW_KIVY_DEVELOP_BRANCH: "1"
         run: |
-          # Buscamos la última versión de build-tools instalada en el servidor y la inyectamos al sistema
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-          export PATH=$PATH:$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
+          # Desactivamos temporalmente las variables del sistema de GitHub para obligar a Buildozer
+          # a descargar automáticamente la versión exacta de build-tools (y aidl) que necesita.
+          unset ANDROID_HOME
+          unset ANDROID_SDK_ROOT
           buildozer -v android debug
 
       - name: Upload APK
