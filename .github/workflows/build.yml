@@ -13,41 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # Usamos la acción oficial empaquetada que ya incluye AIDL y todas las herramientas sin fallos de rutas
+      - name: Build APK with Buildozer Action
+        uses: Artemis-Skade/buildozer-action@v1
         with:
-          python-version: "3.11"
-
-      - name: Install Android Build Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libssl-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-
-      - name: Install Buildozer and Cython
-        run: |
-          python -m pip install --upgrade pip
-          pip install "cython<3.0.0" virtualenv buildozer
-
-      # Le enviamos un "y" automático al distclean para que no pida confirmación manual
-      - name: Clean Cache
-        run: echo "y" | buildozer distclean
-
-      # Forzamos la instalación manual y explícita de las build-tools que contienen AIDL
-      - name: Force Install Android Build Tools (Aidl)
-        run: |
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses
-          ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.1" "platforms;android-33"
-          # Añadimos la ruta de la carpeta que acabamos de descargar al entorno global de Linux
-          echo "${ANDROID_HOME}/build-tools/33.0.1" >> $GITHUB_PATH
-
-      # Compilamos vinculando directamente las rutas para que Buildozer no tenga alternativa de perderse
-      - name: Build APK
-        env:
-          APP_ALLOW_ROOT: "1"
-          BUILDOZER_ALLOW_KIVY_DEVELOP_BRANCH: "1"
-        run: |
-          export PATH=$PATH:${ANDROID_HOME}/build-tools/33.0.1
-          buildozer -v android debug
+          command: buildozer -v android debug
+          repository_root: .
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
