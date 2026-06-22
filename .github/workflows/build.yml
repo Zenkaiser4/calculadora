@@ -13,27 +13,38 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Usamos Python 3.11 ya que el entorno ubuntu-latest (Ubuntu 24.04) tiene mejor compatibilidad nativa
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install Android Build Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libssl-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
-      - name: Install Buildozer
+      # Instalamos Cython y dependencias necesarias en el entorno global de pip
+      - name: Install Buildozer and Cython
         run: |
           python -m pip install --upgrade pip
-          pip install buildozer cython virtualenv
+          pip install "cython<3.0.0" virtualenv
 
+      # Limpieza preventiva: Evita que errores de ejecuciones previas se queden en el caché de GitHub
+      - name: Clean Buildozer Cache
+        run: |
+          pip install buildozer
+          buildozer distclean
+
+      # Eliminamos el "yes |" y añadimos "-v" para ver el error real si algo falla.
+      # Nota: Buildozer ya acepta las licencias automáticamente en las versiones modernas.
       - name: Build APK
         run: |
-          yes | buildozer android debug
+          buildozer -v android debug
 
+      # Sube el APK generado a los artefactos de GitHub
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: bin/*.apk
+          path: .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists/calculadora/build/outputs/apk/debug/*.apk
