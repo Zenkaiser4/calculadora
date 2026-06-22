@@ -32,6 +32,13 @@ jobs:
       - name: Clean Cache
         run: buildozer distclean
 
+      # NUEVO PASO CRÍTICO: Forzar la aceptación de licencias del SDK de Android sin colapsar la consola
+      - name: Accept Android SDK Licenses
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       # Comando limpio con aceptación automática de licencias mediante variables de entorno
       - name: Build APK
         env:
