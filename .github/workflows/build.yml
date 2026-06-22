@@ -28,11 +28,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install "cython<3.0.0" virtualenv buildozer
 
-      # Forzamos limpieza profunda para que no intente reciclar descargas corruptas de intentos previos
+      # CORRECCIÓN: Le enviamos un "y" automático al distclean para que no pida confirmación manual
       - name: Clean Cache
-        run: buildozer distclean
+        run: echo "y" | buildozer distclean
 
-      # NUEVO PASO CRÍTICO: Forzar la aceptación de licencias del SDK de Android sin colapsar la consola
+      # Forzar la aceptación de licencias del SDK de Android sin colapsar la consola
       - name: Accept Android SDK Licenses
         run: |
           mkdir -p ~/.android
